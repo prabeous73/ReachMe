@@ -24,7 +24,7 @@
           if(!DB::query('SELECT follower_id FROM followers WHERE user_id=:userid AND follower_id=:followerid', array(':userid'=>$user_id, ':followerid'=>$follower_id))){
             //check if the follower is 'verified' account
             if($follower_id == 5){
-              DB::query('UPDATE users SET verified=1 WHERE id=:userid', array(':user_id'=>$user_id));
+              DB::query('UPDATE users SET verified=1 WHERE id=:userid', array(':userid'=>$user_id));
             }
             //follow
             DB::query('INSERT INTO followers VALUES ( \'\', :userid, :followerid)', array(':userid'=>$user_id, ':followerid'=>$follower_id));
@@ -47,7 +47,7 @@
           if(DB::query('SELECT follower_id FROM followers WHERE user_id=:userid AND follower_id=:followerid', array(':userid'=>$user_id, ':followerid'=>$follower_id))){
             //check if the unfollower is 'verified' account
             if($follower_id == 5){
-              DB::query('UPDATE users SET verified=0 WHERE id=:userid', array(':user_id'=>$user_id));
+              DB::query('UPDATE users SET verified=0 WHERE id=:userid', array(':userid'=>$user_id));
             }
             //unfollow
             DB::query('DELETE FROM followers WHERE user_id=:userid AND follower_id=:followerid', array(':userid'=>$user_id, ':followerid'=>$follower_id));
@@ -61,6 +61,26 @@
       if(DB::query('SELECT follower_id FROM followers WHERE user_id=:userid AND follower_id=:followerid', array(':userid'=>$user_id, ':followerid'=>$follower_id))){
         $isFollowing = True;
       }
+
+      $userid = Login::isLoggedIn();
+
+
+      if(isset($_POST['post'])){
+        $postbody = $_POST['postbody'];
+
+        if(strlen($postbody) > 160 || strlen($postbody) < 1){
+          die('Incorrect Length!');
+        }
+
+        DB::query('INSERT INTO posts VALUES (\'\', :postbody, NOW(), :userid, 0)', array(':postbody'=>$postbody, ':userid'=>$userid));
+      }
+
+      $dbposts = DB::query('SELECT * FROM posts WHERE user_id=:userid ORDER BY id DESC', array(':userid'=>$userid));
+      $posts = "";
+      foreach($dbposts as $p){
+        $posts .= $p['body']."<hr> <br>";
+      }
+
     }
     else{
       die('user not found');
@@ -83,3 +103,13 @@
   }
    ?>
 </form>
+
+
+<form action="profile.php?username=<?php echo $username; ?>" method="post">
+  <textarea name="postbody" rows="8" cols="80"></textarea>
+  <input type="submit" name="post" value="post">
+</form>
+
+<div class="posts">
+  <?php echo $posts; ?>
+</div>
