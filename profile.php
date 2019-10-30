@@ -2,6 +2,7 @@
 
   include('./classes/DB.php');
   include('./classes/Login.php');
+  include('./classes/Post.php');
 
   $isFollowing = False;
   $verified = False;
@@ -62,30 +63,24 @@
         $isFollowing = True;
       }
 
-      $userid = Login::isLoggedIn();
-
 
       if(isset($_POST['post'])){
-        $postbody = $_POST['postbody'];
-
-        if(strlen($postbody) > 160 || strlen($postbody) < 1){
-          die('Incorrect Length!');
+        Post::createPost($_POST['postbody'], Login::isLoggedIn(), $user_id);
         }
 
-        DB::query('INSERT INTO posts VALUES (\'\', :postbody, NOW(), :userid, 0)', array(':postbody'=>$postbody, ':userid'=>$userid));
       }
 
-      $dbposts = DB::query('SELECT * FROM posts WHERE user_id=:userid ORDER BY id DESC', array(':userid'=>$userid));
-      $posts = "";
-      foreach($dbposts as $p){
-        $posts .= $p['body']."<hr> <br>";
+      if(isset($_GET['postid'])){
+        Post::likePost($_GET['postid'], $follower_id);
       }
+
+      $posts = Post::displayPosts($user_id, $username, $follower_id);
 
     }
     else{
       die('user not found');
     }
-  }
+
 
  ?>
 
